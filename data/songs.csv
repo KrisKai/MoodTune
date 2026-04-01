@@ -1,0 +1,51 @@
+title,artist,genre,mood_tag,valence,energy,url
+Here Comes the Sun,The Beatles,Rock,happy,0.95,0.75,https://open.spotify.com/track/6dGnYIeXmHdcikdzNNDMm2
+Happy,Pharrell Williams,Pop,happy,0.96,0.82,https://open.spotify.com/track/60nZcImufyMA1MKQY3dcCH
+Walking on Sunshine,Katrina and the Waves,Pop,happy,0.93,0.88,https://open.spotify.com/track/05wIrZSwuaVWhcv5FfqeH0
+Don't Stop Me Now,Queen,Rock,happy,0.87,0.84,https://open.spotify.com/track/5T8EDUDqKcs6OSOwEsfqG7
+Good as Hell,Lizzo,Pop,happy,0.91,0.78,https://open.spotify.com/track/6KgBpzTuTRPebChN0VTyzV
+Uptown Funk,Bruno Mars,Pop,happy,0.93,0.90,https://open.spotify.com/track/32OlwWuMpZ6b0aN2RZOeMS
+Best Day of My Life,American Authors,Rock,happy,0.88,0.85,https://open.spotify.com/track/5Hroj5K7vLpIG4FMC1TM3a
+Lovely Day,Bill Withers,Soul,happy,0.85,0.62,https://open.spotify.com/track/0bRXwKfigvpKEtRTc4CEDU
+Three Little Birds,Bob Marley,Reggae,happy,0.80,0.65,https://open.spotify.com/track/26PjMOBzVAupmZOjPmR6RS
+Better Together,Jack Johnson,Folk,calm,0.72,0.52,https://open.spotify.com/track/2KNWV9RrRGr7BqnbMCIGXP
+Weightless,Marconi Union,Ambient,calm,0.15,0.12,https://open.spotify.com/track/6GyFP1nfCDB8lbD2bG0Hq9
+Clair de Lune,Debussy,Classical,calm,0.10,0.08,https://open.spotify.com/track/1DFixLWuPkv3KT3TnV35m3
+Breathe Me,Sia,Pop,calm,0.25,0.30,https://open.spotify.com/track/3iqT7fPkJgMoexKKXbnBDC
+Banana Pancakes,Jack Johnson,Folk,calm,0.68,0.45,https://open.spotify.com/track/5lVmvBkBkHMEMhRbBXuJaK
+Put Your Records On,Corinne Bailey Rae,Soul,calm,0.70,0.48,https://open.spotify.com/track/2nGFzvWl2yzYzfeMqcPNDN
+Lean on Me,Bill Withers,Soul,uplifting,0.78,0.55,https://open.spotify.com/track/3M8FzayQWtkvNHlKuTY1x0
+Rise Up,Andra Day,Soul,uplifting,0.60,0.50,https://open.spotify.com/track/0tKcYR2II1VCQWT79i5NrW
+Stronger,Kelly Clarkson,Pop,uplifting,0.75,0.80,https://open.spotify.com/track/6D60klaHqbCm2lEBMhmTZN
+Fight Song,Rachel Platten,Pop,uplifting,0.72,0.70,https://open.spotify.com/track/0RBfB1PHZPAH0CqRRYmzSm
+Brave,Sara Bareilles,Pop,uplifting,0.78,0.72,https://open.spotify.com/track/5MqkZd7a7u7N7hKMqquL2U
+Don't Worry Be Happy,Bobby McFerrin,Pop,uplifting,0.85,0.60,https://open.spotify.com/track/4hObp5bmIJ3PP3cKA9K9GY
+I Gotta Feeling,Black Eyed Peas,Pop,energetic,0.85,0.92,https://open.spotify.com/track/3VqHuw0wFlIHcIPRkhEsVP
+Can't Hold Us,Macklemore,Hip-Hop,energetic,0.82,0.95,https://open.spotify.com/track/3bidbhpOYeV4knp8AIu8Xn
+Eye of the Tiger,Survivor,Rock,energetic,0.78,0.90,https://open.spotify.com/track/2KH16WveTQWT6KOG9Rg6e2
+Shake It Off,Taylor Swift,Pop,energetic,0.94,0.85,https://open.spotify.com/track/0cqRj7pUJDkTCEsJkx8snD
+Blinding Lights,The Weeknd,Pop,energetic,0.81,0.73,https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b
+On Top of the World,Imagine Dragons,Rock,energetic,0.82,0.83,https://open.spotify.com/track/0ct6r3EGTcMLPaxCMhonkR
+September,Earth Wind & Fire,Funk,energetic,0.88,0.92,https://open.spotify.com/track/2grjqo0Frpf2okIBiifQKs
+Dynamite,BTS,Pop,energetic,0.79,0.76,https://open.spotify.com/track/5QDLhrAOJJdNAmCTJ8xMyW
+Let It Be,The Beatles,Rock,reassuring,0.60,0.42,https://open.spotify.com/track/7iN1s7xHE4ifF5povM6A48
+What a Wonderful World,Louis Armstrong,Jazz,reassuring,0.65,0.30,https://open.spotify.com/track/1mea3bSkSGXuIRvnWJo9HJ
+Somewhere Over the Rainbow,Israel K.,Folk,reassuring,0.62,0.35,https://open.spotify.com/track/1gk3PaKRsmBEfBIYDd5Z12
+Everything's Gonna Be Alright,Bob Marley,Reggae,reassuring,0.70,0.50,https://open.spotify.com/track/1FBpjKfmJyGMlGAYPgIvXf
+You've Got a Friend,Carole King,Folk,reassuring,0.55,0.35,https://open.spotify.com/track/2yCGFBuBu7NVZPGTAz1qlO
+Here Comes the Rain Again,Eurythmics,Pop,melancholic,0.30,0.55,https://open.spotify.com/track/0P4PmTGaFKKLRmvFx2yrXA
+Mad World,Gary Jules,Alternative,melancholic,0.15,0.25,https://open.spotify.com/track/3JOVTQ5h8HGFnDdp4VT3MP
+Fix You,Coldplay,Rock,uplifting,0.65,0.55,https://open.spotify.com/track/7LVHVU3tWfcxj5aiPFEW4Q
+Somewhere Only We Know,Keane,Rock,melancholic,0.40,0.58,https://open.spotify.com/track/3iAhCPCMmVbAFLxMjRNE6N
+A Thousand Years,Christina Perri,Pop,calm,0.35,0.28,https://open.spotify.com/track/6lanRgr6wXibZr8KgzXxBl
+All of Me,John Legend,R&B,calm,0.33,0.26,https://open.spotify.com/track/3U4isOIWM3VvDubwSI3y7a
+Imagine,John Lennon,Rock,reassuring,0.62,0.38,https://open.spotify.com/track/7pKfPomDEeI4TPT6EOYjn9
+Beautiful Day,U2,Rock,uplifting,0.75,0.68,https://open.spotify.com/track/6dODwocEuGzHAavXqTbwk2
+Vienna,Billy Joel,Rock,calm,0.42,0.45,https://open.spotify.com/track/77dRzu7ERsSqRNYOI3phOb
+Send Me on My Way,Rusted Root,Folk,energetic,0.80,0.78,https://open.spotify.com/track/6bfkwBsEmGPRQ3b4NICLXl
+Float On,Modest Mouse,Indie,uplifting,0.72,0.65,https://open.spotify.com/track/2mKolmBuEYDqmY5OLgBMvG
+Pocketful of Sunshine,Natasha Bedingfield,Pop,happy,0.88,0.78,https://open.spotify.com/track/2C5VhXcRIZqDBhIaXs6mTz
+Unwritten,Natasha Bedingfield,Pop,uplifting,0.76,0.72,https://open.spotify.com/track/4zvBICFHnhMv2EBmUiOxhP
+Good Vibrations,The Beach Boys,Rock,happy,0.90,0.72,https://open.spotify.com/track/5t9KYe0Fhd5cW6UYT4qP8f
+Mr. Blue Sky,Electric Light Orchestra,Rock,happy,0.92,0.88,https://open.spotify.com/track/2RlgNHKcydI9sayD2Df2xp
+Fireflies,Owl City,Pop,calm,0.50,0.55,https://open.spotify.com/track/3DamFFqW32WihKkTVlwTYQ

@@ -1,0 +1,37 @@
+# Data
+data/fer2013/
+data/midi/
+
+# Model checkpoints
+checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Generated audio
+*.mid
+*.wav
+output/
+
+# Jupyter
+.ipynb_checkpoints/
