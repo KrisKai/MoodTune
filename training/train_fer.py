@@ -6,6 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
@@ -15,21 +17,46 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     FER_DATA_DIR, MODEL_PATH, EMOTION_LABELS, NUM_CLASSES,
     IMG_SIZE, BATCH_SIZE, LEARNING_RATE, NUM_EPOCHS, EARLY_STOP_PATIENCE,
+    LABEL_SMOOTHING, BASE_DIR,
 )
-from models.fer_model import EmotionResNet
+from models.fer_model import build_model
 
+
+# ── Mixup Data Augmentation ──
+
+def mixup_data(x, y, alpha=0.2):
+    """Apply Mixup augmentation: blend two random samples and their labels."""
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.0
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size, device=x.device)
+    mixed_x = lam * x + (1 - lam) * x[index]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    """Compute loss for Mixup-blended targets."""
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+
+# ── Data Loading ──
 
 def get_data_loaders():
-    """Load FER2013 dataset in image-folder format (train/ and test/ subdirectories)."""
+    """Load FER2013 with strong augmentation (train) and clean transforms (test)."""
     train_transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        transforms.ColorJitter(brightness=0.2),
+        transforms.RandomRotation(15),
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)),
+        transforms.ColorJitter(brightness=0.3, contrast=0.2),
+        transforms.RandomErasing(p=0.25, scale=(0.02, 0.15)),  # applied after ToTensor
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5], std=[0.5]),
+        transforms.RandomErasing(p=0.25, scale=(0.02, 0.15)),
     ])
 
     test_transform = transforms.Compose([
@@ -49,8 +76,10 @@ def get_data_loaders():
     print(f"Test samples: {len(test_dataset)}")
     print(f"Classes: {train_dataset.classes}")
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
+                              num_workers=2, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False,
+                             num_workers=2, pin_memory=True)
 
     return train_loader, test_loader, train_dataset
 
@@ -61,22 +90,34 @@ def compute_class_weights(dataset):
     class_counts = np.bincount(targets, minlength=NUM_CLASSES)
     total = sum(class_counts)
     weights = total / (NUM_CLASSES * class_counts.astype(float))
+    print(f"Class distribution: {dict(zip(EMOTION_LABELS, class_counts))}")
     return torch.FloatTensor(weights)
 
 
+# ── Training ──
+
 def train(model, train_loader, test_loader, class_weights, device):
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', patience=3, factor=0.5)
+    # Label smoothing + class weights
+    criterion = nn.CrossEntropyLoss(
+        weight=class_weights.to(device),
+        label_smoothing=LABEL_SMOOTHING,
+    )
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
+
+    # Cosine annealing with warm restarts for better convergence
+    scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=10, T_mult=2, eta_min=1e-6
+    )
 
     best_acc = 0.0
     best_model_state = None
     patience_counter = 0
     train_losses = []
+    train_accs = []
     test_accs = []
 
     for epoch in range(NUM_EPOCHS):
-        # Training
+        # ── Training Phase ──
         model.train()
         running_loss = 0.0
         correct = 0
@@ -84,32 +125,50 @@ def train(model, train_loader, test_loader, class_weights, device):
 
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
+
+            # Apply Mixup with 50% probability
+            use_mixup = np.random.random() < 0.5
+            if use_mixup:
+                images, labels_a, labels_b, lam = mixup_data(images, labels, alpha=0.2)
+
             optimizer.zero_grad()
             outputs = model(images)
-            loss = criterion(outputs, labels)
+
+            if use_mixup:
+                loss = mixup_criterion(criterion, outputs, labels_a, labels_b, lam)
+            else:
+                loss = criterion(outputs, labels)
+
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
             running_loss += loss.item() * images.size(0)
             _, predicted = outputs.max(1)
             total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
+            if use_mixup:
+                correct += (lam * predicted.eq(labels_a).float().sum().item() +
+                            (1 - lam) * predicted.eq(labels_b).float().sum().item())
+            else:
+                correct += predicted.eq(labels).sum().item()
+
+        scheduler.step()
 
         train_loss = running_loss / total
         train_acc = correct / total
         train_losses.append(train_loss)
+        train_accs.append(train_acc)
 
-        # Evaluation
+        # ── Evaluation Phase ──
         test_acc = evaluate(model, test_loader, device)
         test_accs.append(test_acc)
-        scheduler.step(test_acc)
 
         current_lr = optimizer.param_groups[0]['lr']
         print(f"Epoch [{epoch+1}/{NUM_EPOCHS}] "
-              f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f} | "
-              f"Test Acc: {test_acc:.4f} | LR: {current_lr:.6f}")
+              f"Loss: {train_loss:.4f} | Train: {train_acc:.4f} | "
+              f"Test: {test_acc:.4f} | LR: {current_lr:.6f}")
 
-        # Early stopping + checkpoint
+        # ── Checkpoint + Early Stopping ──
         if test_acc > best_acc:
             best_acc = test_acc
             best_model_state = copy.deepcopy(model.state_dict())
@@ -124,7 +183,7 @@ def train(model, train_loader, test_loader, class_weights, device):
                 break
 
     print(f"\nBest test accuracy: {best_acc:.4f}")
-    return train_losses, test_accs, best_model_state
+    return train_losses, train_accs, test_accs, best_model_state
 
 
 def evaluate(model, test_loader, device):
@@ -141,22 +200,36 @@ def evaluate(model, test_loader, device):
     return correct / total
 
 
-def plot_results(train_losses, test_accs):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+# ── Visualization ──
 
-    ax1.plot(train_losses)
-    ax1.set_title('Training Loss')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Loss')
+def plot_results(train_losses, train_accs, test_accs):
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4))
 
-    ax2.plot(test_accs)
-    ax2.set_title('Test Accuracy')
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Accuracy')
+    axes[0].plot(train_losses)
+    axes[0].set_title('Training Loss')
+    axes[0].set_xlabel('Epoch')
+    axes[0].set_ylabel('Loss')
+
+    axes[1].plot(train_accs, label='Train')
+    axes[1].plot(test_accs, label='Test')
+    axes[1].set_title('Accuracy')
+    axes[1].set_xlabel('Epoch')
+    axes[1].set_ylabel('Accuracy')
+    axes[1].legend()
+
+    # Gap between train and test (overfitting indicator)
+    gaps = [tr - te for tr, te in zip(train_accs, test_accs)]
+    axes[2].plot(gaps, color='orange')
+    axes[2].set_title('Train-Test Gap (overfitting)')
+    axes[2].set_xlabel('Epoch')
+    axes[2].set_ylabel('Gap')
+    axes[2].axhline(y=0, color='gray', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
-    plt.savefig('training_curves.png', dpi=150)
-    plt.show()
+    save_path = os.path.join(BASE_DIR, 'training_curves.png')
+    plt.savefig(save_path, dpi=150)
+    print(f"Training curves saved to {save_path}")
+    plt.close()
 
 
 def plot_confusion_matrix(model, test_loader, device):
@@ -179,12 +252,16 @@ def plot_confusion_matrix(model, test_loader, device):
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.tight_layout()
-    plt.savefig('confusion_matrix.png', dpi=150)
-    plt.show()
+    save_path = os.path.join(BASE_DIR, 'confusion_matrix.png')
+    plt.savefig(save_path, dpi=150)
+    print(f"Confusion matrix saved to {save_path}")
+    plt.close()
 
     print("\nClassification Report:")
     print(classification_report(all_labels, all_preds, target_names=EMOTION_LABELS))
 
+
+# ── Main ──
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available()
@@ -194,16 +271,20 @@ def main():
 
     train_loader, test_loader, train_dataset = get_data_loaders()
     class_weights = compute_class_weights(train_dataset)
-    print(f"Class weights: {class_weights}")
 
-    model = EmotionResNet(pretrained=True).to(device)
-    print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
+    model = build_model(pretrained=True).to(device)
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Model: {type(model).__name__}")
+    print(f"Parameters: {total_params:,} total, {trainable_params:,} trainable")
 
-    train_losses, test_accs, best_state = train(model, train_loader, test_loader, class_weights, device)
+    train_losses, train_accs, test_accs, best_state = train(
+        model, train_loader, test_loader, class_weights, device
+    )
 
     # Load best model for final evaluation
     model.load_state_dict(best_state)
-    plot_results(train_losses, test_accs)
+    plot_results(train_losses, train_accs, test_accs)
     plot_confusion_matrix(model, test_loader, device)
 
 

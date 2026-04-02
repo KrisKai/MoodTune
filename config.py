@@ -6,23 +6,35 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EMOTION_LABELS = ['angry', 'disgusted', 'fearful', 'happy', 'sad', 'surprised', 'neutral']
 NUM_CLASSES = 7
 
-# FER model
-IMG_SIZE = 48
+# ── FER Model ──
+IMG_SIZE = 96                   # Upscaled from 48 for better feature extraction
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-4
-NUM_EPOCHS = 25
-EARLY_STOP_PATIENCE = 5
-MODEL_PATH = os.path.join(BASE_DIR, 'checkpoints', 'fer_resnet18_best.pth')
+NUM_EPOCHS = 30
+EARLY_STOP_PATIENCE = 7
+LABEL_SMOOTHING = 0.1           # Reduces overconfidence on noisy FER2013 labels
+FER_BACKBONE = 'efficientnet_b0'  # Options: 'resnet18', 'efficientnet_b0'
+MODEL_PATH = os.path.join(BASE_DIR, 'checkpoints', 'fer_best.pth')
 
-# Data paths
+# ── Data Paths ──
 FER_DATA_DIR = os.path.join(BASE_DIR, 'data', 'fer2013')
 SONGS_CSV = os.path.join(BASE_DIR, 'data', 'songs.csv')
+MIDI_DATA_DIR = os.path.join(BASE_DIR, 'data', 'midi')
 
-# Music generation
+# ── Music Generation (LSTM) ──
 SAMPLE_RATE = 44100
 MELODY_BEATS = 16
+LSTM_HIDDEN_DIM = 256
+LSTM_NUM_LAYERS = 2
+LSTM_EMBED_DIM = 64
+LSTM_SEQ_LEN = 64               # Sequence length for training
+LSTM_EPOCHS = 100
+LSTM_LR = 1e-3
+LSTM_BATCH_SIZE = 32
+MIDI_VOCAB_SIZE = 128            # MIDI note range 0-127
+LSTM_MODEL_PATH = os.path.join(BASE_DIR, 'checkpoints', 'melody_lstm.pth')
 
-# Emotion to musical parameters
+# ── Emotion to Musical Parameters ──
 EMOTION_MUSIC_PARAMS = {
     'happy':     {'tempo': 120, 'scale': 'major',      'octave': 5, 'note_density': 0.8, 'velocity': 100},
     'sad':       {'tempo': 60,  'scale': 'minor',      'octave': 4, 'note_density': 0.4, 'velocity': 60},
@@ -33,7 +45,7 @@ EMOTION_MUSIC_PARAMS = {
     'disgusted': {'tempo': 80,  'scale': 'minor',      'octave': 3, 'note_density': 0.5, 'velocity': 70},
 }
 
-# Mood improvement mapping for song recommendations
+# ── Mood Improvement Mapping for Song Recommendations ──
 MOOD_IMPROVEMENT_MAP = {
     'sad':       {'target_valence': (0.6, 1.0), 'target_energy': (0.4, 0.7), 'label': 'uplifting'},
     'angry':     {'target_valence': (0.5, 0.8), 'target_energy': (0.2, 0.5), 'label': 'calming'},
