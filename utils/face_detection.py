@@ -2,9 +2,13 @@ import cv2
 import numpy as np
 from torchvision import transforms
 
+from config import IMG_SIZE
+
 
 class FaceDetector:
-    def __init__(self, img_size=48):
+    def __init__(self, img_size=None):
+        if img_size is None:
+            img_size = IMG_SIZE  # Use config (224) to match training
         self.face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
         )

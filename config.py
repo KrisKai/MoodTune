@@ -3,15 +3,15 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Emotion labels (FER2013 order)
-EMOTION_LABELS = ['angry', 'disgusted', 'fearful', 'happy', 'sad', 'surprised', 'neutral']
+EMOTION_LABELS = ['angry', 'disgusted', 'fearful', 'happy', 'neutral', 'sad', 'surprised']
 NUM_CLASSES = 7
 
 # ── FER Model ──
-IMG_SIZE = 96                   # Upscaled from 48 for better feature extraction
-BATCH_SIZE = 64
+IMG_SIZE = 224                  # EfficientNet-B0 native resolution for max accuracy
+BATCH_SIZE = 32                 # Smaller batch for 224x224 (more GPU memory per image)
 LEARNING_RATE = 1e-4
-NUM_EPOCHS = 30
-EARLY_STOP_PATIENCE = 7
+NUM_EPOCHS = 100
+EARLY_STOP_PATIENCE = 15
 LABEL_SMOOTHING = 0.1           # Reduces overconfidence on noisy FER2013 labels
 FER_BACKBONE = 'efficientnet_b0'  # Options: 'resnet18', 'efficientnet_b0'
 MODEL_PATH = os.path.join(BASE_DIR, 'checkpoints', 'fer_best.pth')
@@ -23,7 +23,7 @@ MIDI_DATA_DIR = os.path.join(BASE_DIR, 'data', 'midi')
 
 # ── Music Generation (LSTM) ──
 SAMPLE_RATE = 44100
-MELODY_BEATS = 16
+MELODY_BEATS = 300              # ~3 minutes at 100 BPM
 LSTM_HIDDEN_DIM = 256
 LSTM_NUM_LAYERS = 2
 LSTM_EMBED_DIM = 64

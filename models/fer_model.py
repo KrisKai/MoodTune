@@ -61,9 +61,12 @@ def load_trained_model(device='cpu'):
 
 
 def predict_emotion(model, face_tensor, device='cpu'):
+    """Predict emotion with Test-Time Augmentation (original + horizontal flip)."""
     face_tensor = face_tensor.to(device)
     with torch.no_grad():
-        logits = model(face_tensor)
+        logits1 = model(face_tensor)
+        logits2 = model(torch.flip(face_tensor, dims=[3]))
+        logits = (logits1 + logits2) / 2
         probs = torch.softmax(logits, dim=1)
         idx = probs.argmax(dim=1).item()
         confidence = probs.max(dim=1).values.item()
